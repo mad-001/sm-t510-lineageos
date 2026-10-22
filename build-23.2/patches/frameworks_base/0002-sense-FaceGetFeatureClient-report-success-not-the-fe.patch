@@ -1,0 +1,31 @@
+From 4e18b1b11e136a831a1d3bad31793284a62d4069 Mon Sep 17 00:00:00 2001
+From: mad-001 <mad-001@users.noreply.github.com>
+Date: Thu, 22 Oct 2026 03:14:14 -0500
+Subject: [PATCH] sense: FaceGetFeatureClient: report success, not the feature
+ value
+
+Settings enables the 'Require eyes to be open' toggle only when getFeature
+succeeds, so passing the feature value as success greyed it out whenever it
+was off.
+
+Change-Id: I1b5a4c08ddfe2ee6a22594d41394c0a42c064374
+---
+ .../biometrics/sensors/face/sense/FaceGetFeatureClient.java     | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/services/core/java/com/android/server/biometrics/sensors/face/sense/FaceGetFeatureClient.java b/services/core/java/com/android/server/biometrics/sensors/face/sense/FaceGetFeatureClient.java
+index 73f99f168..932328827 100644
+--- a/services/core/java/com/android/server/biometrics/sensors/face/sense/FaceGetFeatureClient.java
++++ b/services/core/java/com/android/server/biometrics/sensors/face/sense/FaceGetFeatureClient.java
+@@ -81,7 +81,7 @@ public class FaceGetFeatureClient extends HalClientMonitor<ISenseService> {
+             mValue = result;
+ 
+             if (getListener() != null) {
+-                getListener().onFeatureGet(result, features, featureState);
++                getListener().onFeatureGet(true /* success */, features, featureState);
+             }
+             mCallback.onClientFinished(this, true /* success */);
+         } catch (RemoteException e) {
+-- 
+2.43.0
+

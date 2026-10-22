@@ -1,0 +1,16 @@
+# Samsung firmware is not redistributable and is too large for git
+stock-firmware/*
+!stock-firmware/README.md
+# Personal device dumps (EFS, partitions, user data) never go public
+backups/*
+!backups/README.md
+# Downloaded binaries and built images (built images ship via GitHub Releases)
+tools/bin/
+releases/*
+!releases/README.md
+*.img
+*.tar
+*.tar.md5
+*.zip
+# Private work notes
+docs/private/

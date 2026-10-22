@@ -1,0 +1,103 @@
+[CENTER][SIZE=6][B][ROM][UNOFFICIAL][GSI - 32 BIT] LineageOS 23.2 (Android 16) for Galaxy Tab A 10.1 2019 [SM-T510] with GApps + Face Unlock[/B][/SIZE][/CENTER]
+
+[SIZE=5][COLOR=rgb(226, 80, 65)][B]READ THIS FIRST: PROVIDED AS IS. NO FEATURE REQUESTS.[/B][/COLOR][/SIZE]
+This ROM is built for my own tablet and shared in case it helps someone else. It is provided [B]AS IS[/B].
+[B]There are no feature requests.[/B] If you want something added, removed or changed, the complete build recipe is public on GitHub: build it yourself.
+
+[B]SM-T510 (Wi-Fi) ONLY.[/B] Not for the SM-T515 (LTE) or any other model.
+Installing from stock [B]wipes your tablet[/B]. Back up first. I am not responsible for bricked devices, lost data or anything else.
+
+[SIZE=5][B]What is this[/B][/SIZE]
+LineageOS 23.2 (Android 16) as a 32-bit (a64: arm32 with 64-bit binder) Treble GSI system image, built for the SM-T510. It runs on Samsung's stock [B]T510XXU5CWA1[/B] kernel and vendor; only the System partition is replaced.
+
+[SIZE=5][B]Included in the image[/B][/SIZE]
+[LIST]
+[*][B]Google apps[/B] (MindTheGapps). [B]Do not flash a GApps package.[/B]
+[*][B]Face unlock[/B] (ParanoidSense with 32-bit Megvii libraries), including [I]Skip lock screen[/I] and [I]Require eyes to be open[/I]
+[*]USB file transfer (MTP) to a PC, plus adb
+[*]exFAT/FAT32 microSD card support
+[/LIST]
+
+[SIZE=5][B]Working[/B][/SIZE]
+All known things are working:
+[LIST]
+[*]Wi-Fi
+[*]Bluetooth
+[*]Audio (speaker, headphones)
+[*]Cameras
+[*]Sensors, auto-brightness
+[*]Face unlock with skip lock screen and require eyes open
+[*]USB file transfer (MTP) and adb
+[*]microSD card
+[*]Google Play / Google apps
+[/LIST]
+
+[SIZE=5][B]Not included / by design[/B][/SIZE]
+[LIST]
+[*]No root, no Magisk
+[*]Wi-Fi only: no calls or SMS on the tablet itself (use Google Messages device pairing for texts)
+[*]The "bootloader is unlocked" warning at power-on is Samsung's and cannot be removed
+[/LIST]
+
+[SIZE=5][B]Download[/B][/SIZE]
+[URL='https://github.com/mad-001/sm-t510-lineageos/releases/latest']https://github.com/mad-001/sm-t510-lineageos/releases/latest[/URL]
+File: [B]lineage-23.2-20261022-UNOFFICIAL-sm-t510-a64_bgN.img.xz[/B] (unzip the .xz before flashing the .img)
+SHA-256 of the .img.xz: [CODE]9dba1c62bfa9ed9558e09f57407123ea7aa8106cbbade2766d3f63ab58f5d86a[/CODE]
+
+[SIZE=5][B]You also need[/B][/SIZE]
+[LIST]
+[*]Stock firmware [B]T510XXU5CWA1[/B] (Android 11) on the tablet
+[*]Bootloader unlock guide: [URL='https://xdaforums.com/t/guide-sm-t510-t515-unlock-twrp-odin-howto-root-tab-a-10-1-2019.3989361/'][GUIDE][SM-T510/T515] Unlock/TWRP/Odin HowTo/Root[/URL]
+[*]TWRP 3.7.0 for T510XXU5CWA1 by Magendanz: [URL='https://xdaforums.com/t/recovery-unofficial-twrp-3-7-0-for-2019-galaxy-tab-a-10-1-sm-t510.3934805/'][RECOVERY][UNOFFICIAL] TWRP 3.7.0 for 2019 Galaxy Tab A 10.1 (SM-T510)[/URL]
+[*]Multidisabler by ianmacd: [URL='https://xdaforums.com/t/pie-10-11-system-as-root-multidisabler-disables-encryption-vaultkeeper-auto-flash-of-stock-recovery-proca-wsm-cass-etc.3919714/']XDA thread[/URL] / [URL='https://github.com/ianmacd/multidisabler-samsung']GitHub[/URL]
+[*]Odin 3.13.3 (linked in the guide above)
+[/LIST]
+
+[SIZE=5][B]Installation (clean install from stock)[/B][/SIZE]
+Put the unzipped .img and the Multidisabler zip on your microSD card first.
+[LIST=1]
+[*][B]Unlock the bootloader[/B] (wipes the tablet): follow the guide linked above. Short version: Developer options > OEM unlocking on; power off; hold Vol Up + Vol Down and plug in USB; on the light-blue screen long-press Vol Up, then press Vol Up to confirm. After the wipe, set up, connect to Wi-Fi and check OEM unlocking says the bootloader is already unlocked.
+[*][B]Install TWRP[/B]: Download mode (Vol Up + Vol Down + plug in USB, short-press Vol Up). In Odin load the TWRP .tar.md5 in AP, untick Auto Reboot, Start. Then hold Power + Vol Down until black and immediately hold Power + Vol Up to boot straight into TWRP. If stock boots first, it restores the stock recovery; repeat.
+[*]In TWRP: [B]Install[/B] > Multidisabler zip.
+[*][B]Wipe > Format Data[/B] > type yes. Then [B]Reboot > Recovery[/B].
+[*][B]Wipe > Advanced Wipe[/B]: Dalvik/ART Cache, Cache, System, Data.
+[*][B]Install > Install Image[/B] > lineage-23.2-...img > [B]System Image[/B].
+[*]Optional: Wipe > Advanced Wipe > System > Repair or Change File System > [B]Resize File System[/B].
+[*][B]Reboot > System[/B]. The first boot takes a few minutes.
+[/LIST]
+[B]Updating[/B] from an earlier build of this ROM: TWRP > Install > Install Image > new .img > System Image > reboot. No wipe needed.
+Full guide: [URL='https://github.com/mad-001/sm-t510-lineageos/blob/main/docs/INSTALL.md']INSTALL.md on GitHub[/URL]
+
+[SIZE=5][B]Tips[/B][/SIZE]
+[LIST]
+[*]File transfer by default: Developer options > Default USB configuration > File transfer
+[*]Snappier feel: Developer options > Window/Transition/Animator scale > 0.5x
+[*]Face unlock: Settings > Security & privacy > Device unlock > Face unlock
+[/LIST]
+
+[SIZE=5][B]Source code[/B][/SIZE]
+Build recipe, patches and scripts: [URL='https://github.com/mad-001/sm-t510-lineageos']https://github.com/mad-001/sm-t510-lineageos[/URL]
+Kernel: Samsung's stock T510XXU5CWA1 kernel (source at opensource.samsung.com).
+
+[SIZE=5][B]Credits[/B][/SIZE]
+None of this would exist without:
+[LIST]
+[*][URL='https://github.com/LineageOS']LineageOS[/URL]: the operating system
+[*][URL='https://github.com/TrebleDroid']TrebleDroid[/URL] and [URL='https://github.com/phhusson']phhusson[/URL]: Treble GSI device tree and patches, including the 32-bit target
+[*][URL='https://github.com/MisterZtr/LineageOS_gsi']MisterZtr[/URL]: LineageOS GSI build scripts, patches and manifest
+[*][URL='https://github.com/AndyCGYan']AndyYan[/URL], [URL='https://github.com/ponces']Ponces[/URL], [URL='https://github.com/PeterCxy']Peter Cai[/URL] and everyone credited in MisterZtr's repo: GSI build work and patches
+[*][URL='https://github.com/retiredtab']retiredtab[/URL] and UDPSendToFailed: SM-T510 GSI work, the BPF-less networking hacks, and documenting the audio HAL 4.0 and Wi-Fi-only fixes
+[*][URL='https://github.com/Magendanz']Magendanz[/URL]: TWRP for the SM-T510 and years of SM-T510 ROMs
+[*][URL='https://github.com/AOSPA']Paranoid Android[/URL]: ParanoidSense face unlock
+[*][URL='https://github.com/Evolution-X']Evolution-X[/URL]: FaceUnlock app and the Android 16 SenseProvider adaptation
+[*][URL='https://github.com/AOSP-11/vendor_apps_FaceUnlock']AOSP-11 vendor_apps_FaceUnlock[/URL]: 32-bit Megvii libraries
+[*]Megvii: face recognition libraries
+[*][URL='https://gitlab.com/MindTheGapps']MindTheGapps[/URL]: Google apps
+[*][URL='https://github.com/ianmacd/multidisabler-samsung']ianmacd[/URL]: Multidisabler
+[*]mingkee and MossyTC: SM-T510 unlock guides
+[*][URL='https://github.com/topjohnwu/samloader-rs']topjohnwu[/URL]: samloader
+[*]Samsung: the stock kernel and vendor
+[/LIST]
+
+[SIZE=5][COLOR=rgb(226, 80, 65)][B]Once more: AS IS, no feature requests.[/B][/COLOR][/SIZE]
+Bug reports with an adb logcat that show something on the "Working" list is broken are fine. Requests for new features, other models or other Android versions will be ignored. The source is public; build what you want yourself.

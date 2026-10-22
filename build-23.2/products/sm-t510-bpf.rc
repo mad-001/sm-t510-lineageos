@@ -1,0 +1,4 @@
+# SM-T510: the 4.4 kernel has no eBPF, so netbpfload exits before the platform
+# bpfloader can set bpf.progs_loaded, which leaves netd and others waiting forever.
+on property:init.svc.bpfloader=stopped
+    setprop bpf.progs_loaded 1

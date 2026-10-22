@@ -1,0 +1,158 @@
+From ceb5ebd689de17bb1588889357ae4265b38e9672 Mon Sep 17 00:00:00 2001
+From: mad-001 <mad-001@users.noreply.github.com>
+Date: Wed, 21 Oct 2026 20:19:35 -0500
+Subject: [PATCH] SM-T510: run without eBPF on the 4.4 kernel
+
+Port of retiredtab's 'Partially revert Additional bpf prevent-crash' and
+'More ugly BPF hacks' to the current LineageOS 22.2 tree: no reboot on
+bpfloader failure, netd does not wait for BPF programs, firewall map
+lookups report not-blocked.
+
+Change-Id: I157e23a8fed65f90b7ace7fdf764c8cc72fd80f3
+---
+ bpf/loader/netbpfload.33rc                    |  2 +-
+ bpf/loader/netbpfload.35rc                    |  2 +-
+ bpf/netd/BpfHandler.cpp                       |  8 +--
+ .../src/android/net/BpfNetMapsUtils.java      | 62 ++-----------------
+ 4 files changed, 10 insertions(+), 64 deletions(-)
+
+diff --git a/bpf/loader/netbpfload.33rc b/bpf/loader/netbpfload.33rc
+index eb937dd..4aea640 100644
+--- a/bpf/loader/netbpfload.33rc
++++ b/bpf/loader/netbpfload.33rc
+@@ -17,4 +17,4 @@ service mdnsd_netbpfload /apex/com.android.tethering/bin/netbpfload
+     file /dev/kmsg w
+     rlimit memlock 1073741824 1073741824
+     oneshot
+-    reboot_on_failure reboot,netbpfload-failed
++#    reboot_on_failure reboot,netbpfload-failed
+diff --git a/bpf/loader/netbpfload.35rc b/bpf/loader/netbpfload.35rc
+index 0fbcb5a..d9a9e53 100644
+--- a/bpf/loader/netbpfload.35rc
++++ b/bpf/loader/netbpfload.35rc
+@@ -5,5 +5,5 @@ service bpfloader /apex/com.android.tethering/bin/netbpfload
+     file /dev/kmsg w
+     rlimit memlock 1073741824 1073741824
+     oneshot
+-    reboot_on_failure reboot,bpfloader-failed
++#    reboot_on_failure reboot,bpfloader-failed
+     override
+diff --git a/bpf/netd/BpfHandler.cpp b/bpf/netd/BpfHandler.cpp
+index 1aef2e6..39ce434 100644
+--- a/bpf/netd/BpfHandler.cpp
++++ b/bpf/netd/BpfHandler.cpp
+@@ -195,7 +195,7 @@ static bool mainlineNetBpfLoadDone() {
+ 
+ // copied with minor changes from waitForProgsLoaded()
+ // p/m/C's staticlibs/native/bpf_headers/include/bpf/WaitForProgsLoaded.h
+-static inline void waitForNetProgsLoaded() {
++[[maybe_unused]] static inline void waitForNetProgsLoaded() {
+     // infinite loop until success with 5/10/20/40/60/60/60... delay
+     for (int delay = 5;; delay *= 2) {
+         if (delay > 60) delay = 60;
+@@ -215,7 +215,7 @@ static inline void waitForBpf() {
+         // but there could be platform provided (xt_)bpf programs that oem/vendor
+         // modified netd (which calls us during init) depends on...
+         ALOGI("Waiting for platform BPF programs");
+-        android::bpf::waitForProgsLoaded();
++        // SM-T510 (no BPF): android::bpf::waitForProgsLoaded();
+     }
+ 
+     if (!mainlineNetBpfLoadDone()) {
+@@ -225,11 +225,11 @@ static inline void waitForBpf() {
+         // so waitForProgsLoaded() implies mainlineNetBpfLoadDone().
+         if (!base::SetProperty("ctl.start", "mdnsd_netbpfload")) {
+             ALOGE("Failed to set property ctl.start=mdnsd_netbpfload, see dmesg for reason.");
+-            abort();
++            // SM-T510 (no BPF): abort();
+         }
+ 
+         ALOGI("Waiting for Networking BPF programs");
+-        waitForNetProgsLoaded();
++        // SM-T510 (no BPF): waitForNetProgsLoaded();
+         ALOGI("Networking BPF programs are loaded");
+     }
+ 
+diff --git a/framework/src/android/net/BpfNetMapsUtils.java b/framework/src/android/net/BpfNetMapsUtils.java
+index 287116a..1aed672 100644
+--- a/framework/src/android/net/BpfNetMapsUtils.java
++++ b/framework/src/android/net/BpfNetMapsUtils.java
+@@ -242,16 +242,8 @@ public class BpfNetMapsUtils {
+ 
+         if (uidOwnerMap == null) return FIREWALL_RULE_ALLOW;
+ 
+-        final long match = getMatchByFirewallChain(chain);
+-        final boolean isAllowList = isFirewallAllowList(chain);
+-        try {
+-            final UidOwnerValue uidMatch = uidOwnerMap.getValue(new S32(uid));
+-            final boolean isMatchEnabled = uidMatch != null && (uidMatch.rule & match) != 0;
+-            return isMatchEnabled == isAllowList ? FIREWALL_RULE_ALLOW : FIREWALL_RULE_DENY;
+-        } catch (ErrnoException e) {
+-            throw new ServiceSpecificException(e.errno,
+-                    "Unable to get uid rule status: " + Os.strerror(e.errno));
+-        }
++        // SM-T510: 4.4 kernel has no usable eBPF maps
++        return FIREWALL_RULE_ALLOW;
+     }
+ 
+     /**
+@@ -270,54 +262,8 @@ public class BpfNetMapsUtils {
+         if (UserHandle.getAppId(uid) < Process.FIRST_APPLICATION_UID) {
+             return BLOCKED_REASON_NONE;
+         }
+-
+-        long uidRuleConfig = 0;
+-        long uidMatch = 0;
+-        try {
+-            uidRuleConfig = configurationMap.getValue(UID_RULES_CONFIGURATION_KEY).val;
+-            final UidOwnerValue value = uidOwnerMap.getValue(new Struct.S32(uid));
+-            uidMatch = (value != null) ? value.rule : 0L;
+-        } catch (Throwable e) {
+-            android.util.Log.e("BpfNetMapsUtils", "Unable to get firewall chain status");
+-        }
+-        final long blockingMatches = (uidRuleConfig & ~uidMatch & sMaskDropIfUnset)
+-                | (uidRuleConfig & uidMatch & sMaskDropIfSet);
+-
+-        int blockedReasons = BLOCKED_REASON_NONE;
+-        if ((blockingMatches & POWERSAVE_MATCH) != 0) {
+-            blockedReasons |= BLOCKED_REASON_BATTERY_SAVER;
+-        }
+-        if ((blockingMatches & DOZABLE_MATCH) != 0) {
+-            blockedReasons |= BLOCKED_REASON_DOZE;
+-        }
+-        if ((blockingMatches & STANDBY_MATCH) != 0) {
+-            blockedReasons |= BLOCKED_REASON_APP_STANDBY;
+-        }
+-        if ((blockingMatches & RESTRICTED_MATCH) != 0) {
+-            blockedReasons |= BLOCKED_REASON_RESTRICTED_MODE;
+-        }
+-        if ((blockingMatches & LOW_POWER_STANDBY_MATCH) != 0) {
+-            blockedReasons |= BLOCKED_REASON_LOW_POWER_STANDBY;
+-        }
+-        if ((blockingMatches & BACKGROUND_MATCH) != 0) {
+-            blockedReasons |= BLOCKED_REASON_APP_BACKGROUND;
+-        }
+-        if ((blockingMatches & (OEM_DENY_1_MATCH | OEM_DENY_2_MATCH | OEM_DENY_3_MATCH)) != 0) {
+-            blockedReasons |= BLOCKED_REASON_OEM_DENY;
+-        }
+-
+-        // Metered chains are not enabled by configuration map currently.
+-        if ((uidMatch & PENALTY_BOX_USER_MATCH) != 0) {
+-            blockedReasons |= BLOCKED_METERED_REASON_USER_RESTRICTED;
+-        }
+-        if ((uidMatch & PENALTY_BOX_ADMIN_MATCH) != 0) {
+-            blockedReasons |= BLOCKED_METERED_REASON_ADMIN_DISABLED;
+-        }
+-        if ((uidMatch & HAPPY_BOX_MATCH) == 0 && getDataSaverEnabled(dataSaverEnabledMap)) {
+-            blockedReasons |= BLOCKED_METERED_REASON_DATA_SAVER;
+-        }
+-
+-        return blockedReasons;
++        // SM-T510: 4.4 kernel has no usable eBPF maps
++        return BLOCKED_REASON_NONE;
+     }
+ 
+     /**
+-- 
+2.43.0
+

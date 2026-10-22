@@ -1,0 +1,32 @@
+# Creates the GitHub release page for every version tag (v23.2-YYYYMMDD), using that
+# version's section of CHANGELOG.md as the notes. The system image itself is built
+# locally (an Android build needs ~300 GB and hours; GitHub runners have ~14 GB) and is
+# attached to the release by scripts/release.sh right after it pushes the tag.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create release page
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          scripts/changelog-section.sh "$TAG" > notes.md
+          cat docs/release-footer.md >> notes.md
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file notes.md
+          else
+            gh release create "$TAG" --title "LineageOS 23.2 (Android 16) for SM-T510 - ${TAG#v23.2-}" --notes-file notes.md --latest
+          fi
