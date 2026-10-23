@@ -25,7 +25,7 @@ All known things are working:
 [*]Bluetooth
 [*]Audio (speaker, headphones)
 [*]Cameras
-[*]Sensors, auto-brightness
+[*]Sensors (accelerometer / auto-rotate)
 [*]Face unlock with skip lock screen and require eyes open
 [*]USB file transfer (MTP) and adb
 [*]microSD card
@@ -37,6 +37,7 @@ All known things are working:
 [*]No root, no Magisk
 [*]Wi-Fi only: no calls or SMS on the tablet itself (use Google Messages device pairing for texts)
 [*]The "bootloader is unlocked" warning at power-on is Samsung's and cannot be removed
+[*]No auto-brightness: the SM-T510 has no ambient light sensor (same as stock)
 [/LIST]
 
 [SIZE=5][B]Download[/B][/SIZE]

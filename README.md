@@ -18,12 +18,13 @@ It runs on Samsung's stock **T510XXU5CWA1** kernel and vendor; only the System p
 - **Google apps** (MindTheGapps). Do not flash GApps separately.
 - **Face unlock** (ParanoidSense + Megvii), with "Skip lock screen" and "Require eyes to be open"
 - USB file transfer (MTP) and adb
-- Wi-Fi, Bluetooth, audio, both cameras, sensors, brightness, microSD card
+- Wi-Fi, Bluetooth, audio, both cameras, sensors, microSD card
 
 ## Not included / by design
 - No root and no Magisk
 - Wi-Fi only: no phone calls or SMS on the tablet itself (use Google Messages device pairing for texts)
 - The bootloader-unlocked warning at power-on is Samsung's and cannot be removed
+- No auto-brightness: the SM-T510 has no ambient light sensor (same as stock)
 
 ## Changes made for the SM-T510
 The tablet ships Android 11 with a Linux 4.4 kernel, which Android 16 no longer expects. The recipe in
